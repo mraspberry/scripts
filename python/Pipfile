@@ -6,6 +6,9 @@ name = "pypi"
 [packages]
 pygithub = "*"
 black = "*"
+jira = "*"
+pyyaml = "*"
+netaddr = "*"
 
 [dev-packages]
 
