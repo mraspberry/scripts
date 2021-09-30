@@ -8,4 +8,10 @@ setup(
     author_email="3092450+mraspberry@users.noreply.github.com",
     scripts=glob.glob("bin/*"),
     description="Personal scripts",
+    install_requires=[
+        "pygithub",
+        "jira",
+        "pyyaml",
+        "netaddr",
+    ],
 )
