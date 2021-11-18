@@ -9,9 +9,11 @@ setup(
     scripts=glob.glob("bin/*"),
     description="Personal scripts",
     install_requires=[
-        "pygithub",
+        "exrex",
         "jira",
-        "pyyaml",
         "netaddr",
+        "pygithub",
+        "pyyaml",
+        "requests",
     ],
 )
