@@ -5,6 +5,7 @@ import json
 import logging
 import pathlib
 import random
+import secrets
 import string
 from datetime import datetime
 
@@ -24,7 +25,7 @@ def get_pattern_val(definition):
     return exrex.getone(definition["pattern"])
 
 
-def get_int_val(*unused):
+def get_int_val(*unused):  # pylint: disable=unused-argument
     return random.randint(1, 1000000)
 
 
@@ -54,11 +55,11 @@ def get_val(definition):
     return mapper[val_type](definition)
 
 
-def get_email(*unused):
+def get_email(*unused):  # pylint: disable=unused-argument
     return "test_mes_schema@notarealaddress.com"
 
 
-def get_occurred_at(*unused):
+def get_occurred_at(*unused):  # pylint: disable=unused-argument
     return f"{datetime.utcnow():%Y-%m-%dT%H:%M:%S.%f}Z"
 
 
@@ -95,7 +96,7 @@ def test_schema(schema_path, env_prefix, show_payload, dry_run):
     data["event_type"] = get_val(schema["properties"]["event_name"])
     data["schema_uri"] = f"schemas/{uri_dir}/{uri_fn}"
     headers = {
-        "X-Request-Id": "TXID+01234567890123456789",
+        "X-Request-Id": f"TXID+{secrets.token_hex(10).upper()}",
         "Content-Type": "application/json",
     }
     for (payload, name) in gen_test_payloads(schema):
@@ -104,8 +105,10 @@ def test_schema(schema_path, env_prefix, show_payload, dry_run):
             print(json.dumps(data, indent=2))
         if dry_run:
             continue
+        url = f"https://service.{env_prefix}lampogroup.net/marketing-event/events"
+        print(url)
         resp = requests.post(
-            f"https://service.{env_prefix}lampogroup.net/marketing-event/events",
+            url,
             json=data,
             headers=headers,
         )
@@ -121,7 +124,7 @@ def main():
     parser.add_argument(
         "env",
         metavar="ENVIRONMENT",
-        choices=("test", "qa"),
+        choices=("test", "qa", "prod"),
         help="Domain prefix for the environment",
     )
     parser.add_argument(
@@ -140,7 +143,10 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
 
     for fn in args.schemas:  # pylint: disable=invalid-name
-        prefix = args.env + "."
+        if args.env == "prod":
+            prefix = ""
+        else:
+            prefix = args.env + "."
         try:
             test_schema(pathlib.Path(fn), prefix, args.show_payload, args.dry_run)
         except Exception as err:  # pylint: disable=broad-except
